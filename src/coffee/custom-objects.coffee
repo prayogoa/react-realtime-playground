@@ -1,13 +1,13 @@
 module.exports.registerNodeType = (realtime, CoMapModels) ->
-	class CoMapNode
-		@id: realtime.custom.collaborativeField 'id'
-		@x: realtime.custom.collaborativeField 'x'
-		@y: realtime.custom.collaborativeField 'y'
-		@doInitialize: (params)->
-			@x = params.x
-			@y = params.y
-			@id = params.id
-			console.log "init "+@id
-	CoMapModels.CoMapNode = CoMapNode
-	realtime.custom.registerType CoMapNode, 'CoMapNode' 
-	realtime.custom.setInitializer CoMapNode, CoMapNode.doInitialize
+	CoMapModels.CoMapNode = ->
+	realtime.custom.registerType CoMapModels.CoMapNode, 'CoMapNode' 
+	CoMapModels.CoMapNode.prototype.coords = realtime.custom.collaborativeField 'coords'
+	CoMapModels.CoMapNode.prototype.id = realtime.custom.collaborativeField 'id'
+	
+	doInitialize= (params)->
+		@coords = params.coords
+		@id = params.id
+		console.log "init "+@id
+
+	realtime.custom.setInitializer CoMapModels.CoMapNode, doInitialize
+	

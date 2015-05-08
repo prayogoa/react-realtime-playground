@@ -7,7 +7,7 @@ Node = React.createClass
 
 MainView = React.createClass
 	render: ->
-		nodes = (<Node key={node.id} cx={node.x}, cy={node.y}/> for node in @props.modelRoot.get('nodes').values())
+		nodes = (<Node key={node.id} cx={node.coords.x}, cy={node.coords.y}/> for node in @props.modelRoot.get('nodes').values())
 		nodes.push(<circle key="center" r="2" fill="red" cx="0" cy="0" />)
 		(
 			<svg className="MainView" viewBox="-300 -400 600 800" >

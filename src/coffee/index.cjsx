@@ -64,32 +64,40 @@ registerCustomObjects = (realtime)->
 window.init = ->
   console.log 'init'
   registerCustomObjects(gapi.drive.realtime)
-  doc = gapi.drive.realtime.newInMemoryDocument()
-  model = doc.getModel()
+  
+  #create document and get the model
+  model = gapi.drive.realtime.newInMemoryDocument().getModel()
 
+  #attach an Object_changed listener to the root
   root = model.getRoot()
+  root.addEventListener gapi.drive.realtime.EventType.OBJECT_CHANGED, (evt) ->
+    render(root)
+
+  #create mapping of nodes
   nodes = model.createMap()
   root.set 'nodes', nodes
 
+  #insert a single node
   id = shortid.generate()
   node = model.create CoMapModels.CoMapNode, 
       id: id
-      x: 0
-      y: 0
+      coords: 
+        x:0
+        y:0
   nodes.set id, node
-    
-  render(root)
 
+  #make changes to node
   tick = 0
   perTick = Math.PI/180
   setInterval ()=>
     tick+=perTick
-    node.x = Math.sin(tick) * 150
-    node.y = Math.cos(tick) * 200
-    render(root)
+    node.coords = 
+      x: Math.sin(tick) * 150
+      y: Math.cos(tick) * 200
   , 1000/60
 
 render = (root) ->
   React.render <MainView id="main" modelRoot={root} /> , document.body
+
 gapi.load 'auth:client,drive-realtime,drive-share', ->
 	init()
