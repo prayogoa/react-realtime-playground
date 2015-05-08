@@ -87,14 +87,14 @@ window.init = ->
   nodes.set id, node
 
   #make changes to node
-  tick = 0
-  perTick = Math.PI/180
-  setInterval ()=>
-    tick+=perTick
-    node.coords = 
-      x: Math.sin(tick) * 150
-      y: Math.cos(tick) * 200
-  , 1000/60
+  # tick = 0
+  # perTick = Math.PI/180
+  # setInterval ()=>
+  #   tick+=perTick
+  #   node.coords = 
+  #     x: Math.sin(tick) * 150
+  #     y: Math.cos(tick) * 200
+  # , 1000/60
 
 render = (root) ->
   React.render <MainView id="main" modelRoot={root} /> , document.body
