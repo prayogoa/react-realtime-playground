@@ -40,7 +40,7 @@ rtclient.INSTALL_SCOPE = 'https://www.googleapis.com/auth/drive.install'
  * OAuth 2.0 scope for opening and creating files.
  * @const
  */
-rtclient.FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
+rtclient.FILE_SCOPE = 'https://www.googleapis.com/auth/drive'
 
 
 /**
@@ -72,7 +72,6 @@ rtclient.getParams = function() {
       params[paramStr[0]] = unescape(paramStr[1]);
     }
   }
-  console.log(params);
   return params;
 }
 
@@ -95,7 +94,6 @@ rtclient.getOption = function(options, key, defaultValue) {
   if (value == undefined) {
     console.error(key + ' should be present in the options.');
   }
-  console.log(value);
   return value;
 }
 
@@ -121,7 +119,9 @@ rtclient.Authorizer = function(options) {
  */
 rtclient.Authorizer.prototype.start = function(onAuthComplete) {
   var _this = this;
+  console.log("startAuth");
   gapi.load('auth:client,drive-realtime,drive-share', function() {
+    console.log("authDone");
     _this.authorize(onAuthComplete);
   });
 }
@@ -141,6 +141,7 @@ rtclient.Authorizer.prototype.authorize = function(onAuthComplete) {
       _this.authButton.disabled = true;
       _this.fetchUserId(onAuthComplete);
     } else {
+      console.log(authResult);
       _this.authButton.disabled = false;
       _this.authButton.onclick = authorizeWithPopup;
     }
@@ -157,7 +158,6 @@ rtclient.Authorizer.prototype.authorize = function(onAuthComplete) {
       user_id: userId,
       immediate: false
     }, handleAuthResult);
-    console.log(clientId);
   };
 
   // Try with no popups first.
@@ -197,14 +197,16 @@ rtclient.Authorizer.prototype.fetchUserId = function(callback) {
  * Creates a new Realtime file.
  * @param title {string} title of the newly created file.
  * @param mimeType {string} the MIME type of the new file.
+ * @param folderId {string} the folder to place this file under.
  * @param callback {Function} the callback to call after creation.
  */
-rtclient.createRealtimeFile = function(title, mimeType, callback) {
+rtclient.createRealtimeFile = function(title, mimeType, folderId, callback) {
   gapi.client.load('drive', 'v2', function() {
     gapi.client.drive.files.insert({
       'resource': {
         mimeType: mimeType,
-        title: title
+        title: title,
+        parents: folderId?[{id:folderId}]:null
       }
     }).execute(callback);
   });
@@ -261,7 +263,15 @@ rtclient.parseState = function(stateParam) {
  */
 rtclient.RealtimeLoader = function(options) {
   // Initialize configuration variables.
-  this.onFileLoaded = rtclient.getOption(options, 'onFileLoaded');
+  this.onFileLoaded = (function(doc){
+    //enable share button
+    var s = new gapi.drive.share.ShareClient(rtclient.getOption(options, "appId"));
+    s.setItemIds(rtclient.params.fileIds);
+    var shareButton = document.getElementById(rtclient.getOption(options, "shareButtonElementId"));
+    shareButton.onclick = s.showSettingsDialog.bind(s);
+    shareButton.disabled = false;
+    rtclient.getOption(options, 'onFileLoaded')(doc);
+  }).bind(this);
   this.newFileMimeType = rtclient.getOption(options, 'newFileMimeType', rtclient.REALTIME_MIMETYPE);
   this.initializeModel = rtclient.getOption(options, 'initializeModel');
   this.registerTypes = rtclient.getOption(options, 'registerTypes', function(){});
@@ -307,8 +317,10 @@ rtclient.RealtimeLoader.prototype.redirectTo = function(fileIds, userId) {
  */
 rtclient.RealtimeLoader.prototype.start = function() {
   // Bind to local context to make them suitable for callbacks.
+  console.log("start");
   var _this = this;
   this.authorizer.start(function() {
+    console.log("auth callback")
     if (_this.registerTypes) {
       _this.registerTypes();
     }
@@ -341,12 +353,12 @@ rtclient.RealtimeLoader.prototype.handleErrors = function(e) {
  * parameters.
  */
 rtclient.RealtimeLoader.prototype.load = function() {
+  console.log("load");
   var fileIds = rtclient.params['fileIds'];
   if (fileIds) {
     fileIds = fileIds.split(',');
   }
   var userId = this.authorizer.userId;
-  var state = rtclient.params['state'];
 
   // Creating the error callback.
   var authorizer = this.authorizer;
@@ -355,26 +367,15 @@ rtclient.RealtimeLoader.prototype.load = function() {
   // We have file IDs in the query parameters, so we will use them to load a file.
   if (fileIds) {
     for (var index in fileIds) {
+      console.log("loading:"+fileIds[index]);
       gapi.drive.realtime.load(fileIds[index], this.onFileLoaded, this.initializeModel, this.handleErrors);
     }
     return;
   }
 
-  // We have a state parameter being redirected from the Drive UI. We will parse
-  // it and redirect to the fileId contained.
-  else if (state) {
-    var stateObj = rtclient.parseState(state);
-    // If opening a file from Drive.
-    if (stateObj.action == "open") {
-      fileIds = stateObj.ids;
-      userId = stateObj.userId;
-      this.redirectTo(fileIds, userId);
-      return;
-    }
-  }
-
   if (this.autoCreate) {
-    this.createNewFileAndRedirect();
+    var folderId = rtclient.params['folderId'];
+    this.createNewFileAndRedirect(folderId);
   }
 }
 
@@ -382,13 +383,16 @@ rtclient.RealtimeLoader.prototype.load = function() {
 /**
  * Creates a new file and redirects to the URL to load it.
  */
-rtclient.RealtimeLoader.prototype.createNewFileAndRedirect = function() {
+rtclient.RealtimeLoader.prototype.createNewFileAndRedirect = function(folderId) {
   // No fileId or state have been passed. We create a new Realtime file and
   // redirect to it.
   var _this = this;
-  rtclient.createRealtimeFile(this.defaultTitle, this.newFileMimeType, function(file) {
+  rtclient.createRealtimeFile(this.defaultTitle, this.newFileMimeType, folderId, function(file) {
     if (file.id) {
-      _this.redirectTo([file.id], _this.authorizer.userId);
+      //add permission so anyone can edit
+      insertPermission(file.id, "", "anyone", "writer", function(resp){
+        _this.redirectTo([file.id], _this.authorizer.userId);
+      });
     }
     // File failed to be created, log why and do not attempt to redirect.
     else {
@@ -396,6 +400,28 @@ rtclient.RealtimeLoader.prototype.createNewFileAndRedirect = function() {
       console.error(file);
     }
   });
+}
+
+/**
+ * Insert a new permission.
+ *
+ * @param {String} fileId ID of the file to insert permission for.
+ * @param {String} value User or group e-mail address, domain name or
+ *                       {@code null} "default" type.
+ * @param {String} type The value "user", "group", "domain" or "default".
+ * @param {String} role The value "owner", "writer" or "reader".
+ */
+function insertPermission(fileId, value, type, role, onResponse) {
+  var body = {
+    'value': value,
+    'type': type,
+    'role': role
+  };
+  var request = gapi.client.drive.permissions.insert({
+    'fileId': fileId,
+    'resource': body
+  });
+  request.execute(onResponse);
 }
 
 module.exports = rtclient;

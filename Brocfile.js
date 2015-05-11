@@ -4,7 +4,6 @@ var pickFiles = require('broccoli-funnel');
 var mergeTrees = require('broccoli-merge-trees');
 var browserify = require('broccoli-browserify');
 var compileSass = require('broccoli-sass');
-var instrument = require('broccoli-debug').instrument;
 
 var js = compileCJSX('src/coffee');
 js = compileCoffee(js);
