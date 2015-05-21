@@ -1,14 +1,25 @@
+$navbar-inverse-brand-color: #00d8ff;
+$primary-color:  #00d8ff;
+@import 'node_modules/bootstrap-sass/assets/stylesheets/bootstrap'
+@import 'node_modules/loaders.css/src/loaders'
+
 html, body
 	height: 100%;
 	width: 100%;
-
-.container
-	display:flex;
-	align-items:center;
-	justify-content: center;
 
 .MainView
 	height: 600px;
 	width: 800px;
 	border: 1px solid red;
 
+
+.loader-hidden 
+  display: none;
+
+.loader-active 
+  display: block;
+
+.FileListContainer
+	display: flex;
+	flex-direction: column;
+	align-items: center;

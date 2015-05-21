@@ -1,15 +1,12 @@
+<!DOCTYPE html>
 <html>
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<link rel="stylesheet" type="text/css" href="css/index.css">
 </head>
 <body>
-
-	<h1>Drive Realtime API :: quickstart</h1>
-
-	<button id="authorizeButton" disabled>You must authorize</button>
-	<button id="shareButton" disabled>Share</button>
-	<div id="main-container" class="container"></div>
-	<script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
+	<div class="loader-inner ball-pulse"><div/></div>
 	<script src="js/bundle.js"> </script>
+	<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=gapiLoaded"></script>
 </body>
 </html>

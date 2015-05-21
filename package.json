@@ -7,7 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "bluebird": "^2.9.25",
+    "bootstrap-sass": "^3.3.4",
     "broccoli": "*",
+    "broccoli-autoprefixer": "^2.1.0",
     "broccoli-browserify": "*",
     "broccoli-cjsx": "*",
     "broccoli-coffee": "*",
@@ -15,7 +18,12 @@
     "broccoli-merge-trees": "*",
     "broccoli-sass": "*",
     "emitters": "^0.1.0",
+    "loaders.css": "^0.1.1",
     "react": "^0.13.2",
+    "react-bootstrap": "^0.22.6",
+    "react-loaders": "^1.2.1",
+    "react-router": "^0.13.3",
+    "react-router-bootstrap": "^0.15.0",
     "shortid": "^2.2.2"
   },
   "author": "",

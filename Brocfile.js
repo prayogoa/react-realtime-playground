@@ -4,6 +4,7 @@ var pickFiles = require('broccoli-funnel');
 var mergeTrees = require('broccoli-merge-trees');
 var browserify = require('broccoli-browserify');
 var compileSass = require('broccoli-sass');
+var autoprefixer = require('broccoli-autoprefixer');
 
 var js = compileCJSX('src/coffee');
 js = compileCoffee(js);
@@ -19,6 +20,7 @@ js = pickFiles(js, {
 });
 
 var css = compileSass(['src/sass'], '/index.sass', '/css/index.css');
+css = autoprefixer(css, {cascade:true});
 
 var index = pickFiles('public', {
   srcDir: '/',

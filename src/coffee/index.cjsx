@@ -1,7 +1,39 @@
-window.rtclient = require('./realtime-client-utils')
+#window.rtclient = require('./realtime-client-utils')
+Router = require('react-router')
+Route = Router.Route
+DefaultRoute = Router.DefaultRoute
+RouteHandler = Router.RouteHandler
 {RealtimeModel, OfflineModel} = require('./model')
-MainView = require("./views")
+{MainView, Home, NavBar, Auth} = require("./views")
 React = require("react")
+gapiHelper = require('./gapi-helper')
+
+App = React.createClass
+  render: ->
+    <div className="container-fluid">
+      <NavBar/>
+      <RouteHandler/>
+    </div>
+
+startApp = ->
+  routes = 
+    <Route name="root" path="/" handler={App}>
+      <DefaultRoute name="home" handler={Home} />
+      <Route name="sign in" handler={Auth} />
+    </Route>
+
+  Router.run routes, Router.HashLocation, (Root, state) ->
+    React.render <Root/>, document.body
+
+window.gapiLoaded = ->
+  rtprops = 
+    clientId: '128992448042-50i5op6k2un2tiu1fd3ahjkartjtg3k8.apps.googleusercontent.com'
+    appId: '128992448042'
+  gapiHelper.init(rtprops).then startApp
+
+
+
+#everything below this line is unused right now
 
 render = (model) ->
   React.render <MainView id="main" model={model} /> , document.getElementById('main-container')
@@ -86,4 +118,6 @@ startOffline = ->
     render model
   render model
 
-window.onload = if location.host.startsWith("localhost") then startInMemory else startRealtime
+
+if location.host.startsWith("localhost") then startInMemory else
+window.onload =  startRealtime
