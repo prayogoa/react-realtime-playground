@@ -32,7 +32,7 @@ window.gapiLoaded = ->
   gapiHelper.init(rtprops).then startApp
 
 
-
+return
 #everything below this line is unused right now
 
 render = (model) ->
