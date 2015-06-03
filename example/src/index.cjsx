@@ -1,35 +1,9 @@
-#window.rtclient = require('./realtime-client-utils')
-Router = require('react-router')
-Route = Router.Route
-DefaultRoute = Router.DefaultRoute
-RouteHandler = Router.RouteHandler
-{RealtimeModel, OfflineModel} = require('./model')
-{MainView, Home, NavBar, Auth} = require("./views")
-React = require("react")
-gapiHelper = require('./gapi-helper')
-
-App = React.createClass
-  render: ->
-    <div className="container-fluid">
-      <NavBar/>
-      <RouteHandler/>
-    </div>
-
-startApp = ->
-  routes = 
-    <Route name="root" path="/" handler={App}>
-      <DefaultRoute name="home" handler={Home} />
-      <Route name="sign in" handler={Auth} />
-    </Route>
-
-  Router.run routes, Router.HashLocation, (Root, state) ->
-    React.render <Root/>, document.body
+startApp = require('./lib/index')
 
 window.gapiLoaded = ->
-  rtprops = 
+  startApp
     clientId: '128992448042-50i5op6k2un2tiu1fd3ahjkartjtg3k8.apps.googleusercontent.com'
     appId: '128992448042'
-  gapiHelper.init(rtprops).then startApp
 
 
 return

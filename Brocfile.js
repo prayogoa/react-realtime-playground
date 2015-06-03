@@ -6,9 +6,14 @@ var browserify = require('broccoli-browserify');
 var compileSass = require('broccoli-sass');
 var autoprefixer = require('broccoli-autoprefixer');
 
-var js = compileCJSX('src/coffee');
+var  js = pickFiles("src", {
+	srcDir:"/",
+	destDir: "/lib"
+});
+
+js = mergeTrees([js, 'example/src']);
+js = compileCJSX(js);
 js = compileCoffee(js);
-js = mergeTrees([js, 'src/js']);
 js = browserify(js, {
   entries: ['./index.js'],
   outputFile: './bundle.js'
@@ -19,10 +24,10 @@ js = pickFiles(js, {
   destDir: 'js'
 });
 
-var css = compileSass(['src/sass'], '/index.sass', '/css/index.css');
+var css = compileSass(['example/sass'], '/index.sass', '/css/index.css');
 css = autoprefixer(css, {cascade:true});
 
-var index = pickFiles('public', {
+var index = pickFiles('example/public', {
   srcDir: '/',
   destDir: '/'
 });
