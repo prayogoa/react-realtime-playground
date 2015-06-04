@@ -17,6 +17,7 @@ class RealtimeModel
 
 	@initialize: (model) ->
 		#create mapping of nodes
+		console.log 'init model'
 		model.getRoot().set 'nodes', model.createMap()
 
 	constructor: (@model) ->

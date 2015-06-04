@@ -1,9 +1,49 @@
 startApp = require('./lib/index')
+{RealtimeModel, ModelComponent} = require('./model')
 
 window.gapiLoaded = ->
   startApp
     clientId: '128992448042-50i5op6k2un2tiu1fd3ahjkartjtg3k8.apps.googleusercontent.com'
     appId: '128992448042'
+    modelComponent: ModelComponent
+    initModel: RealtimeModel.initialize
+    registerTypes:RealtimeModel.registerTypes
+    modelWrapper: RealtimeModel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 return

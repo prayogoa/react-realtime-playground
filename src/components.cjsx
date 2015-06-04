@@ -3,6 +3,7 @@ Router = require 'react-router'
 RouteHandler = Router.RouteHandler
 NavigationMixin = Router.Navigation
 StateMixin = Router.State
+Link = Router.Link
 ReactRouterBootstrap = require 'react-router-bootstrap'
 NavItemLink = ReactRouterBootstrap.NavItemLink
 ButtonLink = ReactRouterBootstrap.ButtonLink
@@ -14,7 +15,7 @@ App = React.createClass
   render: ->
     <div className="container-fluid">
       <AppNav/>
-      <RouteHandler/>
+      <RouteHandler {...@props}/>
     </div>
 
 AppNav = React.createClass
@@ -59,7 +60,7 @@ parseAfterQs = (query) ->
 
 
 Auth = React.createClass
-	mixins: [NavigationMixin]
+	mixins: [NavigationMixin, StateMixin]
 	statics:
 		willTransitionTo: (transition, params, query, callback)->
 			after = parseAfterQs query.after
@@ -98,7 +99,7 @@ Auth = React.createClass
 
 FileListItem = React.createClass
 	render: ->
-		<li>{@props.file.title}</li>
+		<li><Link to="file" params={id:@props.file.id}>{@props.file.title}</Link></li>
 
 FileList = React.createClass
 	render: ->
@@ -176,4 +177,43 @@ Create = React.createClass
 			</form>
 		</Grid>
 
-module.exports = {App, Home, Auth, Create}
+FileOpen = React.createClass
+	mixins: [StateMixin, AuthMixin]
+
+	getInitialState: ->
+		model: null
+		doc: null
+
+	componentDidMount: ->
+		@loadModel @getParams().id
+
+	componentWillUnmount: ->
+		if @state.doc
+			@state.doc.getModel().getRoot().removeEventListener window.gapi.drive.realtime.EventType.OBJECT_CHANGED, @modelChanged
+			@state.doc.close()
+
+	modelChanged: ->
+		@forceUpdate()
+
+	loadModel: (id) ->
+		gapiHelper.load(id)
+		.then (rtDoc) =>
+			rtDoc.getModel().getRoot().addEventListener window.gapi.drive.realtime.EventType.OBJECT_CHANGED, @modelChanged
+			@setState
+				model: new @props.rtparams.modelWrapper rtDoc.getModel()
+				doc: rtDoc
+		.catch (err) ->
+			console.error err
+
+	render: ->
+		ModelComponent = @props.rtparams.modelComponent
+		<div className="CenterAll">
+		{
+			if @state.model
+				<ModelComponent model={@state.model}/>
+			else
+				<Loader type="line-scale" active=true />
+		}
+		</div>
+
+module.exports = {App, Home, Auth, Create, FileOpen}

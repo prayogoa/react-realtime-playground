@@ -13,7 +13,13 @@ class gapiHelper
 		@appId = params.appId
 		@mimeType = "application/vnd.google-apps.drive-sdk.#{@appId}"
 		@defaultTitle = params.defaultTitle || "Untitled"
-		inited = true
+		@initModel = params.initModel || ->
+
+		registerTypes = params.registerTypes || ->
+		@_load()
+		.then =>
+			registerTypes(window.gapi.drive.realtime)
+
 
 	_load: ->
 		new Promise (fulfill, reject) ->
@@ -92,11 +98,11 @@ class gapiHelper
 				retrievePageOfFiles initReq, [], params
 			, reject
 
-	load: (fileId, initModel = ->) ->
-		@_load
-		.then ->
-			new Promise (fulfill, reject) ->
-				gapi.drive.realtime.load fileId, fulfill, initModel, reject
+	load: (fileId) ->
+		@_load()
+		.then =>
+			new Promise (fulfill, reject) =>
+				gapi.drive.realtime.load fileId, fulfill, @initModel, reject
 
 	hasToken: ->
 		gapi.auth.getToken()
